@@ -1,7 +1,6 @@
 package org.mahesh;
 
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -9,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ConnectionPoolManager {
     private final BlockingQueue<PooledConnection> pool;
-    private final Set<PooledConnection> allConnections;
+    private final ConcurrentHashMap<Connection, PooledConnection> allPooledConnectionMap;
     private final int maxSize;
     private final ConnectionFactory factory;
 
@@ -17,7 +16,7 @@ public class ConnectionPoolManager {
         this.maxSize = maxSize;
         this.factory = factory;
         pool = new LinkedBlockingQueue<>();
-        allConnections = ConcurrentHashMap.newKeySet();
+        allPooledConnectionMap = new ConcurrentHashMap<>();
     }
 
     public Connection getConnection(long timeoutMillis) throws InterruptedException {
@@ -31,7 +30,7 @@ public class ConnectionPoolManager {
         }
 
         synchronized (this) {
-            if (allConnections.size() < maxSize) {
+            if (allPooledConnectionMap.size() < maxSize) {
                 PooledConnection newConnection = createConnection();
                 newConnection.setInUse(true);
                 return newConnection.getConnection();
@@ -46,26 +45,24 @@ public class ConnectionPoolManager {
     }
 
     public void releaseConnection(Connection connection) {
-        allConnections.stream()
-                .filter(pooledConnection -> pooledConnection.getConnection() == connection)
-                .findFirst().ifPresent(pooledConnection -> {
-                    pooledConnection.setInUse(false);
-                    pooledConnection.setLastUsedTime(System.currentTimeMillis());
-                    pool.offer(pooledConnection);
-                });
+        PooledConnection pooledConnection = allPooledConnectionMap.get(connection);
+        if (Objects.nonNull(pooledConnection)) {
+            pooledConnection.setInUse(false);
+            pooledConnection.setLastUsedTime(System.currentTimeMillis());
+            pool.offer(pooledConnection);
+        }
     }
 
     private void destroy(PooledConnection pooledConnection) {
         pooledConnection.getConnection().disconnect();
-        allConnections.remove(pooledConnection);
+        allPooledConnectionMap.remove(pooledConnection.getConnection());
     }
 
     private PooledConnection createConnection() {
         Connection connection = factory.create();
         connection.connect();
-
         PooledConnection pooledConnection = new PooledConnection(connection);
-        allConnections.add(pooledConnection);
+        allPooledConnectionMap.put(pooledConnection.getConnection(), pooledConnection);
         return pooledConnection;
     }
 }
