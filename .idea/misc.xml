@@ -10,6 +10,10 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/connection-pool/pom.xml" />
+        <option value="$PROJECT_DIR$/ticket-booking/pom.xml" />
+        <option value="$PROJECT_DIR$/key-value-store/pom.xml" />
+        <option value="$PROJECT_DIR$/banking-system/pom.xml" />
+        <option value="$PROJECT_DIR$/splitwise/pom.xml" />
       </list>
     </option>
   </component>

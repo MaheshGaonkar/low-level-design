@@ -2,6 +2,7 @@ package org.mahesh;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.mahesh.enums.ConnectionType;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,5 +21,12 @@ public class RedisConnection implements Connection {
     @Override
     public boolean isAlive() {
         return true;
+    }
+
+    /**
+     */
+    @Override
+    public ConnectionType getType() {
+        return ConnectionType.REDIS;
     }
 }

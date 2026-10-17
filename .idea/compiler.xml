@@ -6,7 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="key-value-store" />
+        <module name="ticket-booking" />
+        <module name="banking-system" />
         <module name="connection-pool" />
+        <module name="splitwise" />
       </profile>
     </annotationProcessing>
   </component>
